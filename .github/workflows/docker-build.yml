@@ -44,6 +44,7 @@ jobs:
           build-args: NODE_VERSION=${{ matrix.node_version }}
 
       - name: Scan image for vulnerabilities
+        if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
