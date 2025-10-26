@@ -11,10 +11,12 @@
     "features": null,
     "docker_images": {
         "Node LTS latest (recommended)": "5140\/discord-egg:latest",
-        "Node 22": "5140\/discord-egg:node-22",
         "Node 24": "5140\/discord-egg:node-24",
-        "Node 26": "5140\/discord-egg:node-26",
-        "Devbuilds": "5140\/discord-egg:snapshot"
+        "Node 22": "5140\/discord-egg:node-22",
+        "Node EOL 20": "5140\/discord-egg:node-20",
+        "Node EOL 18": "5140\/discord-egg:node-18",
+        "Node EOL 16": "5140\/discord-egg:node-16",
+        "Devbuilds (Node LTS)": "5140\/discord-egg:snapshot"
     },
     "file_denylist": [],
     "startup": "node ${STARTUP_FILE}",
