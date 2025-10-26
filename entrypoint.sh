@@ -8,9 +8,6 @@ corepack enable
 echo "$ cd /home/container"
 cd /home/container
 
-echo "$ yarn config set nodeLinker node-modules"
-yarn config set nodeLinker node-modules
-
 echo "$ yarn install"
 yarn install
 

@@ -35,7 +35,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: 5140/docker-egg:node-${{ matrix.node_version }}
+          tags: 5140/discord-egg:node-${{ matrix.node_version }}
           build-args: NODE_VERSION=${{ matrix.node_version }}
 
   build-and-push-snapshot:
@@ -62,5 +62,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: 5140/docker-egg:snapshot
+          tags: 5140/discord-egg:snapshot
           build-args: NODE_VERSION=lts

@@ -11,8 +11,9 @@
     "features": null,
     "docker_images": {
         "Node LTS latest (recommended)": "5140\/discord-egg:latest",
-        "Node 18": "5140\/discord-egg:node-18",
         "Node 22": "5140\/discord-egg:node-22",
+        "Node 24": "5140\/discord-egg:node-24",
+        "Node 26": "5140\/discord-egg:node-26",
         "Devbuilds": "5140\/discord-egg:snapshot"
     },
     "file_denylist": [],

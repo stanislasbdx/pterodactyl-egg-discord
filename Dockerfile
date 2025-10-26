@@ -12,6 +12,7 @@ RUN export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 
 RUN yarn policies set-version
+RUN yarn config set nodeLinker node-modules
 
 RUN adduser --disabled-password --home /home/container container
 
