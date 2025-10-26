@@ -61,16 +61,17 @@ jobs:
       matrix:
         node_version: ${{ fromJSON(vars.NODE_VERSIONS) }}
 
-    if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
-
     steps:
       - name: Checkout repository
+        if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
         uses: actions/checkout@v4
 
       - name: Install jq
+        if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
         run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Check if Docker image from egg.json exists
+        if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
         run: |
           if [[ "${{ matrix.node_version }}" == "lts" ]]; then
             IMAGE_NAME_KEY="Node LTS latest (recommended)"
