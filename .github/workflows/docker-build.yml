@@ -8,7 +8,7 @@ on:
       - staging
 
 jobs:
-  build-and-push-matrix:
+  build-test-and-push-matrix:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     strategy:
@@ -30,15 +30,35 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push with matrix
+      - name: Build image locally
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
-          tags: 5140/discord-egg:node-${{ matrix.node_version }}
+          push: false
+          load: true
+          tags: ${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
           build-args: NODE_VERSION=${{ matrix.node_version }}
 
-  build-and-push-snapshot:
+      - name: Create test index.js file
+        run: echo 'console.log("OK")' > index.js
+
+      - name: Test the Docker image
+        run: |
+          TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/mnt/server/index.js -e STARTUP_FILE="index.js" $TAG)
+          if [[ "$output" == *"OK"* ]]; then
+            echo "Test passed for $TAG. Container output is valid."
+          else
+            echo "Test failed for $TAG. Expected 'OK', but got '$output'."
+            exit 1
+          fi
+
+      - name: Push the Docker image
+        run: |
+          TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          docker push $TAG
+
+  build-test-and-push-snapshot:
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
@@ -57,10 +77,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push snapshot
+      - name: Build image locally
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
-          tags: 5140/discord-egg:snapshot
+          push: false
+          load: true
+          tags: 5140/docker-egg:snapshot
           build-args: NODE_VERSION=lts
+
+      - name: Create test index.js file
+        run: echo 'console.log("OK")' > index.js
+
+      - name: Test the Docker image
+        run: |
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/mnt/server/index.js -e STARTUP_FILE="index.js" 5140/docker-egg:snapshot)
+          if [[ "$output" == *"OK"* ]]; then
+            echo "Test passed. Container output is valid."
+          else
+            echo "Test failed. Expected 'OK', but got '$output'."
+            exit 1
+          fi
+
+      - name: Push the Docker image
+        run: docker push 5140/docker-egg:snapshot
