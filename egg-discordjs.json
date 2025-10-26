@@ -29,7 +29,7 @@
     "scripts": {
         "installation": {
             "script": "#!\/bin\/bash\r\n\r\napt -y update\r\napt -y upgrade\r\n\r\napt -y install curl\r\n\r\necho \"-- Downloading from : $REPO_URL\"\r\n\r\ncd \/mnt\/server\r\n\r\ncurl -L $REPO_URL\/projectdefaults\/package.json > package.json\r\ncurl -L $REPO_URL\/projectdefaults\/index.js > index.js\r\n\r\necho \"-- Server installed\"",
-            "container": "debian:buster-slim",
+            "container": "debian:trixie-slim",
             "entrypoint": "bash"
         }
     },
