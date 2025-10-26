@@ -1,3 +1,4 @@
+
 name: Test Pterodactyl Egg
 
 on:
@@ -15,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+        run: sudo apt-get update && sudo apt-get install -y jq dos2unix
 
       - name: Extract installation info from egg
         id: install_info
@@ -24,7 +25,14 @@ jobs:
           INSTALL_CONTAINER=$(jq -r '.scripts.installation.container' egg-discordjs.json)
           REPO_URL=$(jq -r '.variables[] | select(.env_variable == "REPO_URL") | .default_value' egg-discordjs.json)
 
-          echo -e "$INSTALL_SCRIPT_RAW" > install_script.sh
+          echo "--- Extracted Info for Debugging ---"
+          echo "Container Image: ${INSTALL_CONTAINER}"
+          echo "Repository URL: ${REPO_URL}"
+          echo "Installation Script Content:"
+          echo "${INSTALL_SCRIPT_RAW}"
+          echo "------------------------------------"
+
+          echo -e "$INSTALL_SCRIPT_RAW" | dos2unix > install_script.sh
           chmod +x install_script.sh
 
           echo "container_image=$INSTALL_CONTAINER" >> $GITHUB_OUTPUT
