@@ -45,11 +45,11 @@ jobs:
       - name: Test the Docker image
         run: |
           TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
-          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/mnt/server/index.js -e STARTUP_FILE="index.js" $TAG)
-          if [[ "$output" == *"OK"* ]]; then
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" $TAG)
+          if [[ "$output" == *"-- Server started, waiting for index.js..."* && "$output" == *"OK"* ]]; then
             echo "Test passed for $TAG. Container output is valid."
           else
-            echo "Test failed for $TAG. Expected 'OK', but got '$output'."
+            echo "Test failed for $TAG. Expected startup message and 'OK', but got '$output'."
             exit 1
           fi
 
@@ -91,11 +91,11 @@ jobs:
 
       - name: Test the Docker image
         run: |
-          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/mnt/server/index.js -e STARTUP_FILE="index.js" 5140/docker-egg:snapshot)
-          if [[ "$output" == *"OK"* ]]; then
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" 5140/docker-egg:snapshot)
+          if [[ "$output" == *"-- Server started, waiting for index.js..."* && "$output" == *"OK"* ]]; then
             echo "Test passed. Container output is valid."
           else
-            echo "Test failed. Expected 'OK', but got '$output'."
+            echo "Test failed. Expected startup message and 'OK', but got '$output'."
             exit 1
           fi
 
