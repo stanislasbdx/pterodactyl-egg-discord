@@ -1,0 +1,89 @@
+name: Test Pterodactyl Egg
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+
+jobs:
+  test-egg-installation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Extract installation info from egg
+        id: install_info
+        run: |
+          INSTALL_SCRIPT_RAW=$(jq -r '.scripts.installation.script' egg-discordjs.json)
+          INSTALL_CONTAINER=$(jq -r '.scripts.installation.container' egg-discordjs.json)
+          REPO_URL=$(jq -r '.variables[] | select(.env_variable == "REPO_URL") | .default_value' egg-discordjs.json)
+
+          echo -e "$INSTALL_SCRIPT_RAW" > install_script.sh
+          chmod +x install_script.sh
+
+          echo "container_image=$INSTALL_CONTAINER" >> $GITHUB_OUTPUT
+          echo "repo_url=$REPO_URL" >> $GITHUB_OUTPUT
+
+      - name: Run installation script in a simulated environment
+        run: |
+          mkdir -p ./temp_server_files
+
+          docker run --rm \
+            -v $(pwd)/install_script.sh:/mnt/install_script.sh \
+            -v $(pwd)/temp_server_files:/mnt/server \
+            -e REPO_URL="${{ steps.install_info.outputs.repo_url }}" \
+            ${{ steps.install_info.outputs.container_image }} \
+            /mnt/install_script.sh
+
+      - name: Verify installation
+        run: |
+          echo "Checking for downloaded files..."
+          if [ -f "temp_server_files/index.js" ] && [ -f "temp_server_files/package.json" ]; then
+            echo "Installation successful: index.js and package.json were downloaded."
+            grep -q "Server installed, you can upload your files !" temp_server_files/index.js
+            echo "index.js content is correct."
+          else
+            echo "Installation failed: Required files were not found."
+            ls -l temp_server_files
+            exit 1
+          fi
+
+  validate-egg-docker-images:
+    runs-on: ubuntu-latest
+    needs: test-egg-installation
+    strategy:
+      matrix:
+        node_version: ${{ fromJSON(vars.NODE_VERSIONS) }}
+
+    if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Check if Docker image from egg.json exists
+        run: |
+          if [[ "${{ matrix.node_version }}" == "lts" ]]; then
+            IMAGE_NAME_KEY="Node LTS latest (recommended)"
+          else
+            IMAGE_NAME_KEY="Node ${{ matrix.node_version }}"
+          fi
+
+          DOCKER_IMAGE=$(jq -r --arg key "$IMAGE_NAME_KEY" '.docker_images[$key]' egg-discordjs.json)
+
+          if [ -z "$DOCKER_IMAGE" ] || [ "$DOCKER_IMAGE" == "null" ]; then
+            echo "Error: Docker image for '${IMAGE_NAME_KEY}' not found in egg-discordjs.json."
+            exit 1
+          fi
+
+          echo "Found image in egg: $DOCKER_IMAGE. Verifying it exists on Docker Hub..."
+          docker pull $DOCKER_IMAGE
