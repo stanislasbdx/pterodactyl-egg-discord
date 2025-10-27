@@ -1,7 +1,7 @@
 {
   "name": "discord-js14",
   "version": "1.0.0",
-  "description": "Bot NodeJS 18 - Discord 14",
+  "description": "Bot Discord 14",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -14,7 +14,6 @@
   },
   "homepage": "https://github.com/stanislasbdx/pterodactyl-egg-discord#readme",
   "dependencies": {
-    "discord.js": "~14.19.3",
-    "@discordjs/voice": "~0.18.0"
+    "discord.js": "~14.24.0"
   }
 }

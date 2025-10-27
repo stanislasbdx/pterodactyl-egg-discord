@@ -3,13 +3,12 @@
 MODIFIED_STARTUP=`eval echo $(echo ${STARTUP} | sed -e 's/{{/${/g' -e 's/}}/}/g')`
 
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+export COREPACK_HOME="/tmp/corepack"
 corepack enable
 
 echo "$ cd /home/container"
 cd /home/container
-
-echo "$ yarn config set nodeLinker node-modules"
-yarn config set nodeLinker node-modules
 
 echo "$ yarn install"
 yarn install

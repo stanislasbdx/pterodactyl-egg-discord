@@ -1,0 +1,124 @@
+
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: ${{ fromJSON(vars.NODE_VERSIONS) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run dependency audit
+        working-directory: ./projectdefaults
+        run: yarn audit --level high
+
+      - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/master'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image locally
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          build-args: NODE_VERSION=${{ matrix.node_version }}
+
+      - name: Scan image for vulnerabilities
+        if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Create test index.js file
+        run: echo 'console.log("OK")' > index.js
+
+      - name: Test the Docker image
+        run: |
+          TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" $TAG)
+          if [[ "$output" == *"-- Server started, waiting for index.js..."* && "$output" == *"OK"* ]]; then
+            echo "Test passed for $TAG. Container output is valid."
+          else
+            echo "Test failed for $TAG. Expected startup message and 'OK', but got '$output'."
+            exit 1
+          fi
+
+      - name: Push the Docker image
+        if: github.ref == 'refs/heads/master'
+        run: |
+          TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          docker push $TAG
+
+  build-test-and-push-snapshot:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run dependency audit
+        working-directory: ./projectdefaults
+        run: yarn audit --level high
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image locally
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: 5140/docker-egg:snapshot
+          build-args: NODE_VERSION=lts
+
+      - name: Create test index.js file
+        run: echo 'console.log("OK")' > index.js
+
+      - name: Test the Docker image
+        run: |
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" 5140/docker-egg:snapshot)
+          if [[ "$output" == *"-- Server started, waiting for index.js..."* && "$output" == *"OK"* ]]; then
+            echo "Test passed. Container output is valid."
+          else
+            echo "Test failed. Expected startup message and 'OK', but got '$output'."
+            exit 1
+          fi
+
+      - name: Push the Docker image
+        run: docker push 5140/docker-egg:snapshot

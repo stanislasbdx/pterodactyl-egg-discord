@@ -5,10 +5,8 @@ This is an egg dedicated to NodeJS bot hosting (discord.js & nodejs) on pterodac
 > Docker image: <https://hub.docker.com/r/5140/discord-egg>
 >
 > Github Repository <https://github.com/stanislasbdx/pterodactyl-egg-discord⁠>
->
-> Docker image used: <https://hub.docker.com/_/node>
 
-An issue ? A suggestion ? DM me on discord (stan1712) !
+An issue ? A suggestion ? Open an issue on Github or DM me on discord (stan1712) !
 
 > [!IMPORTANT]  
 > **If you run on ARM system, go check [Mizari's project](https://github.com/Mizari-Dev/pterodactyl-egg-nodejs-arm64)**, or you won't be able to use this and be sad 😓 ([here's what you can expect](https://github.com/stanislasbdx/pterodactyl-egg-discord/issues/5)).
@@ -40,6 +38,9 @@ By default when creating a server, the docker image will be the latest (stable),
 - `latest` : Stable tag with active LTS Node Version
 - `snapshot` : Development tag with a bit of chaos sometimes (may not work too)
 - `node-xx` : Tag for each supported NodeJS version
+
+> [!WARNING]  
+> Usage of EOL Node versions will not be accepted if you have an issue.
 
 #### Defaults files from repository
 
