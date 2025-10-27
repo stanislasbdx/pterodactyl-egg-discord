@@ -7,7 +7,7 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0Na
 RUN apk update && \
     apk upgrade && \
     apk add --no-cache curl bash && \
-    adduser --disabled-password --home /home/container container
+    adduser --disabled-password --home /home/sbdx container
 
 WORKDIR /home/container
 
@@ -15,11 +15,13 @@ RUN corepack enable && \
     yarn policies set-version && \
     yarn config set nodeLinker node-modules
 
-ENV USER=container HOME=/home/container
+ENV USER=container HOME=/home/sbdx
 
-COPY --chown=container:container ./entrypoint.sh /home/container/entrypoint.sh
-RUN chmod +x /home/container/entrypoint.sh
+RUN chown -R container:container /home/container && \
+    chmod -R 755 /home/sbdx
 
 USER container
 
-CMD ["/home/container/entrypoint.sh"]
+COPY ./entrypoint.sh /home/sbdx/entrypoint.sh
+
+CMD ["/bin/bash", "/home/sbdx/entrypoint.sh"]
