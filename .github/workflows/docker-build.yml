@@ -41,14 +41,14 @@ jobs:
           context: .
           push: false
           load: true
-          tags: ${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          tags: ${{ matrix.node_version == 'lts' && '5140/discord-egg:latest' || format('5140/discord-egg:node-{0}', matrix.node_version) }}
           build-args: NODE_VERSION=${{ matrix.node_version }}
 
       - name: Scan image for vulnerabilities
         if: "!contains(fromJSON(vars.EOL_NODE_VERSIONS), matrix.node_version)"
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          image-ref: ${{ matrix.node_version == 'lts' && '5140/discord-egg:latest' || format('5140/discord-egg:node-{0}', matrix.node_version) }}
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
@@ -60,7 +60,7 @@ jobs:
 
       - name: Test the Docker image
         run: |
-          TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          TAG=${{ matrix.node_version == 'lts' && '5140/discord-egg:latest' || format('5140/discord-egg:node-{0}', matrix.node_version) }}
           output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" $TAG)
           if [[ "$output" == *"-- Server started, waiting for index.js..."* && "$output" == *"OK"* ]]; then
             echo "Test passed for $TAG. Container output is valid."
@@ -72,7 +72,7 @@ jobs:
       - name: Push the Docker image
         if: github.ref == 'refs/heads/master'
         run: |
-          TAG=${{ matrix.node_version == 'lts' && '5140/docker-egg:latest' || format('5140/docker-egg:node-{0}', matrix.node_version) }}
+          TAG=${{ matrix.node_version == 'lts' && '5140/discord-egg:latest' || format('5140/discord-egg:node-{0}', matrix.node_version) }}
           docker push $TAG
 
   build-test-and-push-snapshot:
@@ -104,7 +104,7 @@ jobs:
           context: .
           push: false
           load: true
-          tags: 5140/docker-egg:snapshot
+          tags: 5140/discord-egg:snapshot
           build-args: NODE_VERSION=lts
 
       - name: Create test index.js file
@@ -112,7 +112,7 @@ jobs:
 
       - name: Test the Docker image
         run: |
-          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" 5140/docker-egg:snapshot)
+          output=$(docker run --rm -v ${{ github.workspace }}/index.js:/home/container/index.js -e STARTUP_FILE="index.js" -e STARTUP="node index.js" 5140/discord-egg:snapshot)
           if [[ "$output" == *"-- Server started, waiting for index.js..."* && "$output" == *"OK"* ]]; then
             echo "Test passed. Container output is valid."
           else
@@ -121,4 +121,4 @@ jobs:
           fi
 
       - name: Push the Docker image
-        run: docker push 5140/docker-egg:snapshot
+        run: docker push 5140/discord-egg:snapshot
