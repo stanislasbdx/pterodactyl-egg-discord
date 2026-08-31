@@ -5,6 +5,12 @@ cd "$(dirname "$0")/.."
 FAIL=0
 line() { printf '\n############################################################\n# %s\n############################################################\n' "$1"; }
 
+# Ensure the Docker daemon is up (normally started by .cursor/start.sh on boot).
+if ! docker info >/dev/null 2>&1; then
+  echo "verify: docker daemon not running, invoking .cursor/start.sh"
+  bash "$(dirname "$0")/start.sh"
+fi
+
 line "0. Toolchain"
 echo "docker : $(docker --version 2>&1)"
 echo "node   : $(node --version 2>&1)"
