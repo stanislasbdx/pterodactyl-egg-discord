@@ -11,7 +11,6 @@
     "features": null,
     "docker_images": {
         "Node LTS latest (recommended)": "5140\/discord-egg:latest",
-        "Node 27": "5140\/discord-egg:node-27",
         "Node 26": "5140\/discord-egg:node-26",
         "Node 24": "5140\/discord-egg:node-24",
         "Node 22": "5140\/discord-egg:node-22",
