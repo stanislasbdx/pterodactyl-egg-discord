@@ -59,5 +59,5 @@ You can build the docker image with the LTS Node version, or a specific version.
 podman build .
 
 # To build in specific Node version
-podman build --build-arg NODE_VERSION=18 .
+podman build --build-arg NODE_VERSION=27 .
 ```
